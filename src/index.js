@@ -1,7 +1,12 @@
 const apiKey = "9c6308te7d4bf50b79ca37c634bbafo5";
+document.addEventListener("DOMContentLoaded", function () {
+  const form = document.querySelector("#search-form");
+  const input = document.querySelector("#search-input");
+  const cityElement = document.querySelector("#current-city");
+  const tempElement = document.querySelector(".current-temperature-value");
+  const dateElement = document.querySelector("#current-date");
 
-// Format date
-function formatDate(date) {
+  // Show current date and time
   const days = [
     "Sunday",
     "Monday",
@@ -12,38 +17,35 @@ function formatDate(date) {
     "Saturday",
   ];
 
-  let hours = date.getHours().toString().padStart(2, "0");
-  let minutes = date.getMinutes().toString().padStart(2, "0");
+  function formatDate(date) {
+    let day = days[date.getDay()];
+    let hours = date.getHours().toString().padStart(2, "0");
+    let minutes = date.getMinutes().toString().padStart(2, "0");
+    return `${day} ${hours}:${minutes}`;
+  }
 
-  return `${days[date.getDay()]} ${hours}:${minutes}`;
-}
-
-// Display date
-function displayDate() {
-  const dateElement = document.querySelector("#current-date");
   dateElement.textContent = formatDate(new Date());
-}
 
-// Display temperature
-function displayTemperature(response) {
-  const temperature = Math.round(response.data.main.temp);
-  document.querySelector(".current-temperature-value").textContent =
-    temperature;
-}
+  // Handle city search
+  form.addEventListener("submit", function (event) {
+    event.preventDefault();
+    const city = input.value.trim();
+    cityElement.textContent = city;
 
-// Search city
-function search(event) {
-  event.preventDefault();
+    // Call OpenWeatherMap API
+    const apiUrl = `https://api.shecodes.io/weather/v1/current?lon={lon}&lat={lat}&key={key}`;
 
-  const city = document.querySelector("#search-input").value.trim();
-  document.querySelector("#current-city").textContent = city;
-
-  const apiUrl = `https://api.shecodes.io/weather/v1/current?query={query}&key={key}`;
-  axios.get(apiUrl).then(displayTemperature);
-}
-
-// Run when page loads
-window.onload = function () {
-  displayDate();
-  document.querySelector("#search-form").addEventListener("submit", search);
-};
+    axios
+      .get(apiUrl)
+      .then(function (response) {
+        const temp = Math.round(response.data.main.temp);
+        tempElement.textContent = temp;
+      })
+      .catch(function (error) {
+        console.error(error);
+        alert(
+          `Sorry, we can't get the weather for "${city}". Please try again.`
+        );
+      });
+  });
+});
